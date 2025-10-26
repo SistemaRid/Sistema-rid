@@ -1,0 +1,2890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de RIDs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#D99900',
+                        secondary: '#CFCFCF',
+                        dark: '#4A4A4A'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-full">
+    <div id="app" class="min-h-full">
+        <!-- Tela de Login -->
+        <div id="loginScreen" class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8">
+                <div class="text-center">
+                    <img src="https://www.jdemito.com.br/wp-content/themes/jdemito/img/logo.png" alt="Logo da Empresa" class="mx-auto h-20 w-auto mb-4" onerror="this.style.display='none';">
+                    <h2 class="mt-6 text-3xl font-bold text-dark">Sistema de Gestão de RIDs</h2>
+                    <p class="mt-2 text-sm text-gray-600">Relatórios de Incidentes e Desvios</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-8">
+                    <div class="flex mb-6">
+                        <button id="loginTab" class="flex-1 py-2 px-4 text-center border-b-2 border-primary text-primary font-medium">Login</button>
+                        <button id="registerTab" class="flex-1 py-2 px-4 text-center border-b-2 border-gray-200 text-gray-500">Cadastro</button>
+                    </div>
+                    
+                    <!-- Formulário de Login -->
+                    <form id="loginForm" class="space-y-6">
+                        <div>
+                            <label for="loginCpf" class="block text-sm font-medium text-dark">CPF</label>
+                            <input id="loginCpf" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" placeholder="000.000.000-00">
+                        </div>
+                        <div>
+                            <label for="loginPassword" class="block text-sm font-medium text-dark">Senha</label>
+                            <input id="loginPassword" type="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                            Entrar
+                        </button>
+                    </form>
+                    
+                    <!-- Formulário de Cadastro -->
+                    <form id="registerForm" class="space-y-6 hidden">
+                        <div>
+                            <label for="registerName" class="block text-sm font-medium text-dark">Nome Completo</label>
+                            <input id="registerName" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label for="registerCpf" class="block text-sm font-medium text-dark">CPF</label>
+                            <input id="registerCpf" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" placeholder="000.000.000-00">
+                        </div>
+                        <div>
+                            <label for="registerSector" class="block text-sm font-medium text-dark">Setor</label>
+                            <select id="registerSector" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Selecione o setor</option>
+                                <option value="ADM">ADM</option>
+                                <option value="M.MOVEL">M.MOVEL</option>
+                                <option value="M.FIXA">M.FIXA</option>
+                                <option value="M.ELÉTRICA">M.ELÉTRICA</option>
+                                <option value="PRODUÇÃO">PRODUÇÃO</option>
+                                <option value="MINA">MINA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="registerPassword" class="block text-sm font-medium text-dark">Senha</label>
+                            <input id="registerPassword" type="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                            Cadastrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Administrativo -->
+        <div id="adminPanel" class="hidden min-h-full">
+            <nav class="bg-white shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center space-x-4">
+                            <img src="https://www.jdemito.com.br/wp-content/themes/jdemito/img/logo.png" alt="Logo da Empresa" class="h-10 w-auto" onerror="this.style.display='none';">
+                            <h1 class="text-xl font-semibold text-dark">Painel Administrativo</h1>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600" id="adminUserName"></span>
+                            <button id="logoutBtn" class="text-sm text-gray-500 hover:text-gray-700">Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Barra de Menu -->
+            <div class="bg-gray-100 border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex space-x-8">
+                        <button id="dashboardMenuBtn" class="py-4 px-2 border-b-2 border-primary text-primary font-medium text-sm">
+                            Dashboard
+                        </button>
+                        <button id="ridsMenuBtn" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            RIDs
+                        </button>
+                        <button id="funcionariosMenuBtn" class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            Funcionários
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <!-- Seção Dashboard -->
+                <div id="dashboardSection">
+                    <!-- Métricas Dashboard -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-yellow-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total de RIDs</dt>
+                                        <dd class="text-lg font-medium text-dark" id="totalRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-red-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Pendentes</dt>
+                                        <dd class="text-lg font-medium text-dark" id="pendingRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-green-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Resolvidos</dt>
+                                        <dd class="text-lg font-medium text-dark" id="resolvedRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">RIDs do Mês</dt>
+                                        <dd class="text-lg font-medium text-dark" id="monthRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top 3 Funcionários e Ações -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-4">
+                                <h3 class="text-lg font-medium text-dark">Top 3 Funcionários com Mais RIDs</h3>
+                                <button id="toggleEmployeeFilterBtn" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm">
+                                    Filtro
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Filtros (inicialmente escondidos) -->
+                        <div id="employeeFilters" class="hidden mb-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-4">
+                                <div>
+                                    <label for="topEmployeesMonth" class="block text-sm font-medium text-gray-700 mb-1">Mês</label>
+                                    <select id="topEmployeesMonth" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                        <option value="">Todos os meses</option>
+                                        <option value="1">Janeiro</option>
+                                        <option value="2">Fevereiro</option>
+                                        <option value="3">Março</option>
+                                        <option value="4">Abril</option>
+                                        <option value="5">Maio</option>
+                                        <option value="6">Junho</option>
+                                        <option value="7">Julho</option>
+                                        <option value="8">Agosto</option>
+                                        <option value="9">Setembro</option>
+                                        <option value="10">Outubro</option>
+                                        <option value="11">Novembro</option>
+                                        <option value="12">Dezembro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="topEmployeesYear" class="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+                                    <select id="topEmployeesYear" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                        <option value="">Todos os anos</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end space-x-2">
+                                    <button id="applyEmployeeFilter" class="px-4 py-2 bg-primary hover:bg-yellow-600 text-white rounded text-sm">
+                                        Aplicar
+                                    </button>
+                                    <button id="clearEmployeeFilter" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm">
+                                        Limpar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="topEmployeesList" class="space-y-3">
+                            <p class="text-gray-500 text-sm">Nenhum dado disponível</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-dark mb-4">Ações Rápidas</h3>
+                        <div class="space-y-3">
+                            <button id="createRidBtn" class="w-full bg-primary hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded">
+                                Criar Novo RID
+                            </button>
+                            <button id="reportBtn" class="w-full bg-purple-800 hover:bg-purple-900 text-white font-medium py-2 px-4 rounded">
+                                Emitir Relatório
+                            </button>
+                            <button id="quickTasksBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                </svg>
+                                <span>Gerenciar Tarefas</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIDs da Semana -->
+                <div class="bg-white shadow rounded-lg mb-8">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-dark">RIDs Criados Esta Semana</h3>
+                            <span id="weekRange" class="text-sm text-gray-500"></span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div id="weekRidsList" class="space-y-4">
+                            <p class="text-gray-500 text-sm">Nenhum RID criado esta semana</p>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+                <!-- Seção RIDs -->
+                <div id="ridsSection" class="hidden">
+                    <div class="bg-white shadow rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-4">
+                                    <h3 class="text-lg font-medium text-dark">Gestão de RIDs</h3>
+                                    <button id="toggleRidsFilterBtn" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm">
+                                        Filtro
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Filtros (inicialmente escondidos) -->
+                            <div id="ridsFilters" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div>
+                                        <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select id="statusFilter" class="border border-gray-300 rounded px-3 py-2">
+                                            <option value="">Todos os status</option>
+                                            <option value="Pendente">Pendentes</option>
+                                            <option value="Em Andamento">Em Andamento</option>
+                                            <option value="Concluído">Concluídos</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="dateFromFilter" class="block text-sm font-medium text-gray-700 mb-1">Data inicial</label>
+                                        <input type="date" id="dateFromFilter" class="border border-gray-300 rounded px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label for="dateToFilter" class="block text-sm font-medium text-gray-700 mb-1">Data final</label>
+                                        <input type="date" id="dateToFilter" class="border border-gray-300 rounded px-3 py-2">
+                                    </div>
+                                    <div class="flex items-end space-x-2">
+                                        <button id="applyRidsFilter" class="px-4 py-2 bg-primary hover:bg-yellow-600 text-white rounded text-sm">
+                                            Aplicar
+                                        </button>
+                                        <button id="clearRidsFilter" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm">
+                                            Limpar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Emitente</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridade</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ridsTableBody" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção Funcionários -->
+                <div id="funcionariosSection" class="hidden">
+                    <!-- Lista de Administradores -->
+                    <div class="bg-white shadow rounded-lg mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-dark">Lista de Administradores</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Setor</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total RIDs</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="administradoresTableBody" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Funcionários -->
+                    <div class="bg-white shadow rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-dark">Lista de Funcionários</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Setor</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total RIDs</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="funcionariosTableBody" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel do Funcionário -->
+        <div id="employeePanel" class="hidden min-h-full">
+            <nav class="bg-white shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center space-x-4">
+                            <img src="https://www.jdemito.com.br/wp-content/themes/jdemito/img/logo.png" alt="Logo da Empresa" class="h-10 w-auto" onerror="this.style.display='none';">
+                            <h1 class="text-xl font-semibold text-dark">Meus RIDs</h1>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600" id="employeeUserName"></span>
+                            <button id="employeeLogoutBtn" class="text-sm text-gray-500 hover:text-gray-700">Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <!-- Botão Criar RID -->
+                <div class="mb-6 flex justify-end">
+                    <button id="employeeCreateRidBtn" class="bg-primary hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded">
+                        Criar Novo RID
+                    </button>
+                </div>
+
+                <!-- Métricas Pessoais -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-yellow-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Meus RIDs</dt>
+                                        <dd class="text-lg font-medium text-dark" id="myTotalRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-red-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Pendentes</dt>
+                                        <dd class="text-lg font-medium text-dark" id="myPendingRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-yellow-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Em Andamento</dt>
+                                        <dd class="text-lg font-medium text-dark" id="myInProgressRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-green-200 rounded flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Concluídos</dt>
+                                        <dd class="text-lg font-medium text-dark" id="myCompletedRids">0</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de RIDs do Funcionário -->
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-dark">Meus RIDs Criados</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Local</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridade</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeRidsTableBody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Criação/Edição de RID -->
+        <div id="ridModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-full overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-dark" id="ridModalTitle">Criar Novo RID</h3>
+                </div>
+                <form id="ridForm" class="p-6 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="ridEmitente" class="block text-sm font-medium text-dark">Emitente</label>
+                            <input id="ridEmitente" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label for="ridTipoContrato" class="block text-sm font-medium text-dark">Tipo de Contrato</label>
+                            <select id="ridTipoContrato" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Selecione</option>
+                                <option value="Funcionário">Funcionário</option>
+                                <option value="Terceiro">Terceiro</option>
+                                <option value="Contratado">Contratado</option>
+                                <option value="Eventual">Eventual</option>
+                                <option value="Visitante">Visitante</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ridUnidade" class="block text-sm font-medium text-dark">Unidade</label>
+                            <select id="ridUnidade" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Selecione</option>
+                                <option value="Calnamix">Calnamix</option>
+                                <option value="Calpi">Calpi</option>
+                                <option value="Caltins">Caltins</option>
+                                <option value="Formacal">Formacal</option>
+                                <option value="Gessotins">Gessotins</option>
+                                <option value="Império Caltins">Império Caltins</option>
+                                <option value="Minerax">Minerax</option>
+                                <option value="Minertins">Minertins</option>
+                                <option value="Natical">Natical</option>
+                                <option value="Nobretins">Nobretins</option>
+                                <option value="Supercal">Supercal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ridSetorEmitente" class="block text-sm font-medium text-dark">Setor do Emitente</label>
+                            <select id="ridSetorEmitente" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Selecione</option>
+                                <option value="ADM">ADM</option>
+                                <option value="M.MOVEL">M.MOVEL</option>
+                                <option value="M.FIXA">M.FIXA</option>
+                                <option value="M.ELÉTRICA">M.ELÉTRICA</option>
+                                <option value="PRODUÇÃO">PRODUÇÃO</option>
+                                <option value="MINA">MINA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ridDataOcorrencia" class="block text-sm font-medium text-dark">Data da Ocorrência</label>
+                            <input id="ridDataOcorrencia" type="date" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label for="ridTipoIncidente" class="block text-sm font-medium text-dark">Incidente ou Desvio</label>
+                            <select id="ridTipoIncidente" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Selecione</option>
+                                <option value="Condição de Risco">Condição de Risco</option>
+                                <option value="Desvio Comportamental">Desvio Comportamental</option>
+                                <option value="Dano Material">Dano Material</option>
+                                <option value="Quase acidente">Quase acidente</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="ridLocalOcorrencia" class="block text-sm font-medium text-dark">Local da Ocorrência</label>
+                            <input id="ridLocalOcorrencia" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="ridDescricao" class="block text-sm font-medium text-dark">Descrição da Ocorrência</label>
+                            <textarea id="ridDescricao" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="ridAcaoImediata" class="block text-sm font-medium text-dark">Ação Imediata</label>
+                            <textarea id="ridAcaoImediata" rows="3" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+                        </div>
+                        <div>
+                            <label for="ridPrioridade" class="block text-sm font-medium text-dark">Prioridade</label>
+                            <select id="ridPrioridade" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Selecione</option>
+                                <option value="Baixa">Baixa</option>
+                                <option value="Média">Média</option>
+                                <option value="Alta">Alta</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ridStatus" class="block text-sm font-medium text-dark">Status</label>
+                            <select id="ridStatus" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluído">Concluído</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                        <button type="button" id="cancelRidBtn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-yellow-600">
+                            Salvar RID
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal de Detalhes do RID -->
+        <div id="ridDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-full overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-dark" id="ridDetailsTitle">Detalhes do RID</h3>
+                </div>
+                <div id="ridDetailsContent" class="p-6">
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button id="updateRidQuickBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-yellow-600 hidden">
+                        Atualizar
+                    </button>
+                    <button id="closeDetailsBtn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Tarefas -->
+        <div id="tasksModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-full overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-dark">Minhas Tarefas e Lembretes</h3>
+                        <button id="closeTasksBtn" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-auto p-6">
+                    <!-- Formulário para nova tarefa -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-medium text-dark mb-3">Adicionar Nova Tarefa</h4>
+                        <form id="taskForm" class="space-y-3">
+                            <div>
+                                <label for="taskTitle" class="block text-sm font-medium text-dark">Título</label>
+                                <input id="taskTitle" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" placeholder="Digite o título da tarefa">
+                            </div>
+                            <div>
+                                <label for="taskDescription" class="block text-sm font-medium text-dark">Descrição</label>
+                                <textarea id="taskDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" placeholder="Descreva os detalhes da tarefa..."></textarea>
+                            </div>
+                            <div class="flex space-x-4">
+                                <div class="flex-1">
+                                    <label for="taskPriority" class="block text-sm font-medium text-dark">Prioridade</label>
+                                    <select id="taskPriority" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                        <option value="Baixa">Baixa</option>
+                                        <option value="Média" selected>Média</option>
+                                        <option value="Alta">Alta</option>
+                                    </select>
+                                </div>
+                                <div class="flex-1">
+                                    <label for="taskDueDate" class="block text-sm font-medium text-dark">Data Limite</label>
+                                    <input id="taskDueDate" type="date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-primary hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded">
+                                Adicionar Tarefa
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de tarefas -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-medium text-dark">Lista de Tarefas</h4>
+                            <div class="flex space-x-2">
+                                <button id="filterAllTasks" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded">Todas</button>
+                                <button id="filterPendingTasks" class="px-3 py-1 text-sm bg-yellow-200 hover:bg-yellow-300 text-yellow-800 rounded">Pendentes</button>
+                                <button id="filterCompletedTasks" class="px-3 py-1 text-sm bg-green-200 hover:bg-green-300 text-green-800 rounded">Concluídas</button>
+                            </div>
+                        </div>
+                        <div id="tasksList" class="space-y-3">
+                            <p class="text-gray-500 text-sm text-center py-8">Nenhuma tarefa criada ainda. Adicione uma nova tarefa acima!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Relatório -->
+        <div id="reportModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop hidden flex items-center justify-center p-2">
+            <div class="bg-white rounded-lg shadow-xl w-full h-full max-w-none max-h-none overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <h3 class="text-lg font-medium text-dark">Relatório Completo de RIDs</h3>
+                            <button id="toggleFilterBtn" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm">
+                                Filtro
+                            </button>
+                        </div>
+                        <button id="closeReportBtn" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Filtros (inicialmente escondidos) -->
+                    <div id="reportFilters" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div>
+                                <label for="reportDateFrom" class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
+                                <input type="date" id="reportDateFrom" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label for="reportDateTo" class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
+                                <input type="date" id="reportDateTo" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            </div>
+                            <div class="flex items-end space-x-2">
+                                <button id="applyReportFilter" class="px-4 py-2 bg-primary hover:bg-yellow-600 text-white rounded text-sm">
+                                    Aplicar
+                                </button>
+                                <button id="clearReportFilter" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm">
+                                    Limpar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-auto p-4">
+                    <div class="overflow-x-auto h-full">
+                        <table class="min-w-full divide-y divide-gray-200 text-xs border border-gray-300 table-fixed">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-20">Unidade</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-24">RID nº</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-24">Data emissão</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-40">Emitente</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-32">Funcionário/Terceiro/Visitante</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-28">Setor/Empresa</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-48">Local incidente</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-40" style="white-space: normal; line-height: 1.2;">GÊNESE DO INCIDENTE/DESVIO</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-36" style="white-space: normal; line-height: 1.2;">ORIGEM DA DETECÇÃO</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-80">Descrição</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-28">Classificação risco</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-80">Ação imediata</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-36" style="white-space: normal; line-height: 1.2;">AÇÕES CORRETIVAS</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-40" style="white-space: normal; line-height: 1.2;">RESPONSÁVEL PELAS AÇÕES</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-32" style="white-space: normal; line-height: 1.2;">PRAZO DE CONCLUSÃO</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-28">Data de conclusão</th>
+                                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase border border-gray-300 w-24">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-between flex-shrink-0">
+                    <div class="flex space-x-3">
+                        <button id="printReportBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Imprimir
+                        </button>
+                        <button id="downloadExcelBtn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            Baixar Excel
+                        </button>
+                    </div>
+                    <button id="closeReportBtnBottom" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de dados local
+        let users = JSON.parse(localStorage.getItem('rids_users') || '[]');
+        let rids = JSON.parse(localStorage.getItem('rids_data') || '[]');
+        let tasks = JSON.parse(localStorage.getItem('rids_tasks') || '[]');
+        let currentUser = null;
+        let ridCounter = parseInt(localStorage.getItem('rid_counter') || '0');
+        let currentRidId = null; // Para armazenar o ID do RID sendo visualizado
+        let currentTaskFilter = 'all'; // Filtro atual das tarefas
+
+        // Adicionar usuário admin padrão se não existir
+        if (!users.find(u => u.cpf === '111.111.111-11')) {
+            users.push({
+                id: 'admin',
+                name: 'Administrador',
+                cpf: '111.111.111-11',
+                password: '222222',
+                sector: 'ADM',
+                isAdmin: true
+            });
+            localStorage.setItem('rids_users', JSON.stringify(users));
+        }
+
+        // Adicionar funcionários de exemplo se não existirem
+        const exemploFuncionarios = [
+            { id: 'func1', name: 'João Silva Santos', cpf: '123.456.789-01', password: '123456', sector: 'PRODUÇÃO', isAdmin: false },
+            { id: 'func2', name: 'Maria Oliveira Costa', cpf: '234.567.890-12', password: '123456', sector: 'M.MOVEL', isAdmin: false },
+            { id: 'func3', name: 'Carlos Eduardo Lima', cpf: '345.678.901-23', password: '123456', sector: 'M.FIXA', isAdmin: false },
+            { id: 'func4', name: 'Ana Paula Ferreira', cpf: '456.789.012-34', password: '123456', sector: 'M.ELÉTRICA', isAdmin: false },
+            { id: 'func5', name: 'Roberto Almeida Souza', cpf: '567.890.123-45', password: '123456', sector: 'MINA', isAdmin: false },
+            { id: 'func6', name: 'Fernanda Castro Rocha', cpf: '678.901.234-56', password: '123456', sector: 'ADM', isAdmin: false }
+        ];
+
+        exemploFuncionarios.forEach(func => {
+            const existingUser = users.find(u => u.cpf === func.cpf);
+            if (!existingUser) {
+                users.push(func);
+            } else {
+                // Garantir que Ana Paula seja sempre funcionária (não admin)
+                if (func.cpf === '456.789.012-34') {
+                    existingUser.isAdmin = false;
+                }
+            }
+        });
+
+        // Adicionar RIDs de exemplo se não existirem
+        if (rids.length === 0) {
+            const exemploRids = [
+                {
+                    id: 'rid1',
+                    numero: 'RID-0001',
+                    emitente: 'João Silva Santos',
+                    emitenteCpf: '123.456.789-01',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Calnamix',
+                    setorEmitente: 'PRODUÇÃO',
+                    dataOcorrencia: '2025-09-05',
+                    dataEmissao: '2025-09-05',
+                    tipoIncidente: 'Condição de Risco',
+                    localOcorrencia: 'Área de produção - Linha 2',
+                    descricao: 'Identificado vazamento de óleo hidráulico próximo ao equipamento de britagem, criando risco de escorregamento para os operadores.',
+                    acaoImediata: 'Área isolada com cones de sinalização, limpeza do óleo derramado e comunicação à manutenção para reparo urgente.',
+                    prioridade: 'Alta',
+                    status: 'Concluído',
+                    dataConclusao: '2025-09-07'
+                },
+                {
+                    id: 'rid2',
+                    numero: 'RID-0002',
+                    emitente: 'Maria Oliveira Costa',
+                    emitenteCpf: '234.567.890-12',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Supercal',
+                    setorEmitente: 'M.MOVEL',
+                    dataOcorrencia: '2025-09-12',
+                    dataEmissao: '2025-09-12',
+                    tipoIncidente: 'Desvio Comportamental',
+                    localOcorrencia: 'Pátio de manobras',
+                    descricao: 'Operador de empilhadeira circulando em velocidade acima do permitido na área de estoque, sem utilizar cinto de segurança.',
+                    acaoImediata: 'Operador orientado sobre normas de segurança, velocidade reduzida e uso obrigatório de EPI. Supervisão reforçada.',
+                    prioridade: 'Média',
+                    status: 'Em Andamento'
+                },
+                {
+                    id: 'rid3',
+                    numero: 'RID-0003',
+                    emitente: 'Carlos Eduardo Lima',
+                    emitenteCpf: '345.678.901-23',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Minertins',
+                    setorEmitente: 'M.FIXA',
+                    dataOcorrencia: '2025-09-18',
+                    dataEmissao: '2025-09-18',
+                    tipoIncidente: 'Dano Material',
+                    localOcorrencia: 'Oficina mecânica',
+                    descricao: 'Quebra de correia transportadora devido ao desgaste excessivo, causando parada não programada na linha de produção.',
+                    acaoImediata: 'Substituição imediata da correia, inspeção das demais correias do sistema e programação de manutenção preventiva.',
+                    prioridade: 'Alta',
+                    status: 'Concluído',
+                    dataConclusao: '2025-09-20'
+                },
+                {
+                    id: 'rid4',
+                    numero: 'RID-0004',
+                    emitente: 'Ana Paula Ferreira',
+                    emitenteCpf: '456.789.012-34',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Caltins',
+                    setorEmitente: 'M.ELÉTRICA',
+                    dataOcorrencia: '2025-09-25',
+                    dataEmissao: '2025-09-25',
+                    tipoIncidente: 'Quase acidente',
+                    localOcorrencia: 'Subestação elétrica',
+                    descricao: 'Faísca em painel elétrico durante manutenção preventiva. Não houve ferimentos, mas poderia ter causado choque elétrico.',
+                    acaoImediata: 'Desenergização imediata do painel, verificação de todos os componentes elétricos e teste de isolamento.',
+                    prioridade: 'Alta',
+                    status: 'Em Andamento'
+                },
+                {
+                    id: 'rid5',
+                    numero: 'RID-0005',
+                    emitente: 'Roberto Almeida Souza',
+                    emitenteCpf: '567.890.123-45',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Minerax',
+                    setorEmitente: 'MINA',
+                    dataOcorrencia: '2025-10-03',
+                    dataEmissao: '2025-10-03',
+                    tipoIncidente: 'Condição de Risco',
+                    localOcorrencia: 'Frente de lavra - Bancada 15',
+                    descricao: 'Identificada instabilidade em talude da bancada superior, com risco de desmoronamento sobre área de trabalho.',
+                    acaoImediata: 'Evacuação imediata da área, isolamento com barreiras e acionamento de equipe de geotecnia para avaliação.',
+                    prioridade: 'Alta',
+                    status: 'Pendente'
+                },
+                {
+                    id: 'rid6',
+                    numero: 'RID-0006',
+                    emitente: 'Fernanda Castro Rocha',
+                    emitenteCpf: '678.901.234-56',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Formacal',
+                    setorEmitente: 'ADM',
+                    dataOcorrencia: '2025-10-08',
+                    dataEmissao: '2025-10-08',
+                    tipoIncidente: 'Desvio Comportamental',
+                    localOcorrencia: 'Escritório administrativo',
+                    descricao: 'Funcionário utilizando celular durante operação de equipamento de escritório, causando distração e risco de acidente.',
+                    acaoImediata: 'Orientação sobre política de uso de celular, reforço das normas internas e treinamento sobre foco nas atividades.',
+                    prioridade: 'Baixa',
+                    status: 'Concluído',
+                    dataConclusao: '2025-10-10'
+                },
+                {
+                    id: 'rid7',
+                    numero: 'RID-0007',
+                    emitente: 'João Silva Santos',
+                    emitenteCpf: '123.456.789-01',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Calnamix',
+                    setorEmitente: 'PRODUÇÃO',
+                    dataOcorrencia: '2025-10-15',
+                    dataEmissao: '2025-10-15',
+                    tipoIncidente: 'Dano Material',
+                    localOcorrencia: 'Esteira transportadora principal',
+                    descricao: 'Sobrecarga na esteira transportadora causou travamento do motor e danos ao sistema de redução.',
+                    acaoImediata: 'Parada imediata da linha, remoção do excesso de material e acionamento da manutenção para reparo do redutor.',
+                    prioridade: 'Média',
+                    status: 'Em Andamento'
+                },
+                {
+                    id: 'rid8',
+                    numero: 'RID-0008',
+                    emitente: 'Maria Oliveira Costa',
+                    emitenteCpf: '234.567.890-12',
+                    tipoContrato: 'Funcionário',
+                    unidade: 'Supercal',
+                    setorEmitente: 'M.MOVEL',
+                    dataOcorrencia: '2025-10-22',
+                    dataEmissao: '2025-10-22',
+                    tipoIncidente: 'Quase acidente',
+                    localOcorrencia: 'Área de carregamento',
+                    descricao: 'Caminhão quase colidiu com empilhadeira durante manobra de carregamento devido à falta de sinalização adequada.',
+                    acaoImediata: 'Reforço da sinalização na área, treinamento dos operadores sobre procedimentos de segurança e definição de rotas.',
+                    prioridade: 'Alta',
+                    status: 'Pendente'
+                }
+            ];
+
+            rids.push(...exemploRids);
+            ridCounter = 8;
+            localStorage.setItem('rid_counter', ridCounter.toString());
+        }
+
+        // Salvar dados atualizados
+        localStorage.setItem('rids_users', JSON.stringify(users));
+        localStorage.setItem('rids_data', JSON.stringify(rids));
+
+        // Elementos DOM
+        const loginScreen = document.getElementById('loginScreen');
+        const adminPanel = document.getElementById('adminPanel');
+        const employeePanel = document.getElementById('employeePanel');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        // Formatação de CPF
+        function formatCPF(value) {
+            return value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        // Adicionar formatação automática aos campos CPF
+        document.getElementById('loginCpf').addEventListener('input', function(e) {
+            e.target.value = formatCPF(e.target.value);
+        });
+        document.getElementById('registerCpf').addEventListener('input', function(e) {
+            e.target.value = formatCPF(e.target.value);
+        });
+
+        // Tabs de login/cadastro
+        loginTab.addEventListener('click', function() {
+            loginTab.classList.add('border-primary', 'text-primary');
+            loginTab.classList.remove('border-gray-200', 'text-gray-500');
+            registerTab.classList.remove('border-primary', 'text-primary');
+            registerTab.classList.add('border-gray-200', 'text-gray-500');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+
+        registerTab.addEventListener('click', function() {
+            registerTab.classList.add('border-primary', 'text-primary');
+            registerTab.classList.remove('border-gray-200', 'text-gray-500');
+            loginTab.classList.remove('border-primary', 'text-primary');
+            loginTab.classList.add('border-gray-200', 'text-gray-500');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+
+        // Login
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cpf = document.getElementById('loginCpf').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(u => u.cpf === cpf && u.password === password);
+            if (user) {
+                currentUser = user;
+                if (user.isAdmin) {
+                    showAdminPanel();
+                } else {
+                    showEmployeePanel();
+                }
+            } else {
+                alert('CPF ou senha incorretos!');
+            }
+        });
+
+        // Cadastro
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const cpf = document.getElementById('registerCpf').value;
+            const sector = document.getElementById('registerSector').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (users.find(u => u.cpf === cpf)) {
+                alert('CPF já cadastrado!');
+                return;
+            }
+
+            const newUser = {
+                id: Date.now().toString(),
+                name,
+                cpf,
+                sector,
+                password,
+                isAdmin: false
+            };
+
+            users.push(newUser);
+            localStorage.setItem('rids_users', JSON.stringify(users));
+            alert('Usuário cadastrado com sucesso!');
+            
+            // Limpar formulário e voltar para login
+            registerForm.reset();
+            loginTab.click();
+        });
+
+        // Mostrar painel administrativo
+        function showAdminPanel() {
+            loginScreen.classList.add('hidden');
+            adminPanel.classList.remove('hidden');
+            employeePanel.classList.add('hidden');
+            document.getElementById('adminUserName').textContent = currentUser.name;
+            showDashboardSection(); // Mostrar dashboard por padrão
+            updateAdminDashboard();
+            loadRidsTable();
+            updateTopEmployees();
+            loadWeekRids();
+        }
+
+        // Funções para controlar as seções do menu
+        function showDashboardSection() {
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('ridsSection').classList.add('hidden');
+            document.getElementById('funcionariosSection').classList.add('hidden');
+            
+            // Atualizar botões do menu
+            updateMenuButtons('dashboard');
+            loadWeekRids(); // Recarregar RIDs da semana
+        }
+
+        function showRidsSection() {
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('ridsSection').classList.remove('hidden');
+            document.getElementById('funcionariosSection').classList.add('hidden');
+            
+            // Atualizar botões do menu
+            updateMenuButtons('rids');
+            loadRidsTable(); // Recarregar tabela de RIDs
+        }
+
+        function showFuncionariosSection() {
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('ridsSection').classList.add('hidden');
+            document.getElementById('funcionariosSection').classList.remove('hidden');
+            
+            // Atualizar botões do menu
+            updateMenuButtons('funcionarios');
+            loadAdministradoresTable(); // Carregar tabela de administradores
+            loadFuncionariosTable(); // Carregar tabela de funcionários
+        }
+
+        function updateMenuButtons(activeSection) {
+            const buttons = {
+                dashboard: document.getElementById('dashboardMenuBtn'),
+                rids: document.getElementById('ridsMenuBtn'),
+                funcionarios: document.getElementById('funcionariosMenuBtn')
+            };
+
+            // Remover classes ativas de todos os botões
+            Object.values(buttons).forEach(btn => {
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Adicionar classes ativas ao botão selecionado
+            if (buttons[activeSection]) {
+                buttons[activeSection].classList.add('border-primary', 'text-primary');
+                buttons[activeSection].classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        // Event listeners para os botões do menu
+        document.getElementById('dashboardMenuBtn').addEventListener('click', showDashboardSection);
+        document.getElementById('ridsMenuBtn').addEventListener('click', showRidsSection);
+        document.getElementById('funcionariosMenuBtn').addEventListener('click', showFuncionariosSection);
+
+        // Mostrar painel do funcionário
+        function showEmployeePanel() {
+            loginScreen.classList.add('hidden');
+            employeePanel.classList.remove('hidden');
+            adminPanel.classList.add('hidden');
+            document.getElementById('employeeUserName').textContent = currentUser.name;
+            updateEmployeeDashboard();
+            loadEmployeeRidsTable();
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('employeeLogoutBtn').addEventListener('click', logout);
+
+        // Modal de Tarefas
+        const tasksModal = document.getElementById('tasksModal');
+        document.getElementById('quickTasksBtn').addEventListener('click', () => {
+            loadTasks();
+            tasksModal.classList.remove('hidden');
+        });
+        document.getElementById('closeTasksBtn').addEventListener('click', () => {
+            tasksModal.classList.add('hidden');
+        });
+
+        function logout() {
+            currentUser = null;
+            loginScreen.classList.remove('hidden');
+            adminPanel.classList.add('hidden');
+            employeePanel.classList.add('hidden');
+            loginForm.reset();
+            registerForm.reset();
+        }
+
+        // Atualizar dashboard administrativo
+        function updateAdminDashboard() {
+            const totalRids = rids.length;
+            const pendingRids = rids.filter(r => r.status === 'Pendente').length;
+            const resolvedRids = rids.filter(r => r.status === 'Concluído').length;
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            const monthRids = rids.filter(r => {
+                const ridDate = new Date(r.dataOcorrencia);
+                return ridDate.getMonth() + 1 === currentMonth && ridDate.getFullYear() === currentYear;
+            }).length;
+
+            document.getElementById('totalRids').textContent = totalRids;
+            document.getElementById('pendingRids').textContent = pendingRids;
+            document.getElementById('resolvedRids').textContent = resolvedRids;
+            document.getElementById('monthRids').textContent = monthRids;
+        }
+
+        // Atualizar dashboard do funcionário
+        function updateEmployeeDashboard() {
+            const myRids = rids.filter(r => r.emitenteCpf === currentUser.cpf);
+            const myTotal = myRids.length;
+            const myPending = myRids.filter(r => r.status === 'Pendente').length;
+            const myInProgress = myRids.filter(r => r.status === 'Em Andamento').length;
+            const myCompleted = myRids.filter(r => r.status === 'Concluído').length;
+
+            document.getElementById('myTotalRids').textContent = myTotal;
+            document.getElementById('myPendingRids').textContent = myPending;
+            document.getElementById('myInProgressRids').textContent = myInProgress;
+            document.getElementById('myCompletedRids').textContent = myCompleted;
+        }
+
+        // Atualizar top funcionários
+        function updateTopEmployees() {
+            const month = document.getElementById('topEmployeesMonth').value;
+            const year = document.getElementById('topEmployeesYear').value;
+            
+            let filteredRids = rids;
+            if (month || year) {
+                filteredRids = rids.filter(r => {
+                    const ridDate = new Date(r.dataOcorrencia);
+                    const ridMonth = ridDate.getMonth() + 1;
+                    const ridYear = ridDate.getFullYear();
+                    
+                    return (!month || ridMonth == month) && (!year || ridYear == year);
+                });
+            }
+
+            const employeeCount = {};
+            filteredRids.forEach(rid => {
+                const user = users.find(u => u.cpf === rid.emitenteCpf);
+                if (user && !user.isAdmin) {
+                    employeeCount[user.name] = (employeeCount[user.name] || 0) + 1;
+                }
+            });
+
+            const sorted = Object.entries(employeeCount)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 3);
+
+            const topEmployeesList = document.getElementById('topEmployeesList');
+            if (sorted.length === 0) {
+                topEmployeesList.innerHTML = '<p class="text-gray-500 text-sm">Nenhum dado disponível</p>';
+            } else {
+                topEmployeesList.innerHTML = sorted.map(([name, count], index) => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div class="flex items-center">
+                            <div class="w-6 h-6 bg-yellow-200 rounded flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium">${name}</span>
+                        </div>
+                        <span class="text-sm text-gray-600">${count} RIDs</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Carregar RIDs da semana
+        function loadWeekRids() {
+            // Calcular início e fim da semana atual (domingo a sábado)
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0 = domingo, 1 = segunda, etc.
+            
+            // Calcular domingo da semana atual
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - dayOfWeek);
+            startOfWeek.setHours(0, 0, 0, 0);
+            
+            // Calcular sábado da semana atual
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            
+            // Verificar se é uma nova semana e limpar dados antigos se necessário
+            const lastWeekCheck = localStorage.getItem('last_week_check');
+            const currentWeekKey = `${startOfWeek.getFullYear()}-W${Math.ceil((startOfWeek.getTime() - new Date(startOfWeek.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}`;
+            
+            if (lastWeekCheck !== currentWeekKey) {
+                // Nova semana detectada - atualizar referência
+                localStorage.setItem('last_week_check', currentWeekKey);
+            }
+            
+            // Formatar datas para exibição
+            const startStr = startOfWeek.toLocaleDateString('pt-BR');
+            const endStr = endOfWeek.toLocaleDateString('pt-BR');
+            
+            // Atualizar o cabeçalho com o período da semana
+            document.getElementById('weekRange').textContent = `${startStr} - ${endStr}`;
+            
+            // Converter para strings de data para comparação
+            const startDateStr = startOfWeek.toISOString().split('T')[0];
+            const endDateStr = endOfWeek.toISOString().split('T')[0];
+            
+            // Filtrar RIDs criados esta semana (baseado na data de emissão)
+            const weekRids = rids.filter(rid => {
+                const ridDate = rid.dataEmissao;
+                return ridDate >= startDateStr && ridDate <= endDateStr;
+            });
+            
+            const weekRidsList = document.getElementById('weekRidsList');
+            
+            if (weekRids.length === 0) {
+                weekRidsList.innerHTML = '<p class="text-gray-500 text-sm">Nenhum RID criado esta semana</p>';
+            } else {
+                // Agrupar RIDs por data
+                const ridsByDate = {};
+                weekRids.forEach(rid => {
+                    const dateKey = new Date(rid.dataEmissao).toLocaleDateString('pt-BR');
+                    if (!ridsByDate[dateKey]) {
+                        ridsByDate[dateKey] = [];
+                    }
+                    ridsByDate[dateKey].push(rid);
+                });
+                
+                // Ordenar datas (mais recente primeiro)
+                const sortedDates = Object.keys(ridsByDate).sort((a, b) => {
+                    const dateA = new Date(a.split('/').reverse().join('-'));
+                    const dateB = new Date(b.split('/').reverse().join('-'));
+                    return dateB - dateA;
+                });
+                
+                weekRidsList.innerHTML = sortedDates.map(date => {
+                    const dateRids = ridsByDate[date];
+                    return `
+                        <div class="mb-6">
+                            <h4 class="text-md font-medium text-dark mb-3 border-b border-gray-200 pb-2">
+                                ${date} (${dateRids.length} RID${dateRids.length > 1 ? 's' : ''})
+                            </h4>
+                            <div class="space-y-3">
+                                ${dateRids.map(rid => {
+                                    const user = users.find(u => u.cpf === rid.emitenteCpf);
+                                    const statusColor = rid.status === 'Pendente' ? 'bg-red-100 text-red-800' : 
+                                                      rid.status === 'Em Andamento' ? 'bg-yellow-100 text-yellow-800' : 
+                                                      'bg-green-100 text-green-800';
+                                    const priorityColor = rid.prioridade === 'Alta' ? 'bg-red-100 text-red-800' : 
+                                                        rid.prioridade === 'Média' ? 'bg-yellow-100 text-yellow-800' : 
+                                                        'bg-green-100 text-green-800';
+
+                                    return `
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 ml-4">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center space-x-3">
+                                                    <span class="font-medium text-dark">${rid.numero}</span>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">
+                                                        ${rid.status}
+                                                    </span>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${priorityColor}">
+                                                        ${rid.prioridade}
+                                                    </span>
+                                                </div>
+                                                <button onclick="viewRidDetails('${rid.id}')" class="text-primary hover:text-yellow-600 text-sm font-medium">
+                                                    Ver Detalhes
+                                                </button>
+                                            </div>
+                                            <div class="text-sm text-gray-600 mb-2">
+                                                <strong>Emitente:</strong> ${user ? user.name : 'N/A'} | 
+                                                <strong>Local:</strong> ${rid.localOcorrencia}
+                                            </div>
+                                            <div class="text-sm text-gray-700">
+                                                <strong>Descrição:</strong> ${rid.descricao.length > 100 ? rid.descricao.substring(0, 100) + '...' : rid.descricao}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Controles do filtro de funcionários
+        document.getElementById('toggleEmployeeFilterBtn').addEventListener('click', () => {
+            const filterDiv = document.getElementById('employeeFilters');
+            filterDiv.classList.toggle('hidden');
+        });
+
+        document.getElementById('applyEmployeeFilter').addEventListener('click', () => {
+            updateTopEmployees();
+        });
+
+        document.getElementById('clearEmployeeFilter').addEventListener('click', () => {
+            document.getElementById('topEmployeesMonth').value = '';
+            document.getElementById('topEmployeesYear').value = '';
+            updateTopEmployees();
+        });
+
+        // Carregar tabela de RIDs (admin)
+        function loadRidsTable() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFrom = document.getElementById('dateFromFilter').value;
+            const dateTo = document.getElementById('dateToFilter').value;
+
+            let filteredRids = rids;
+            
+            if (statusFilter) {
+                filteredRids = filteredRids.filter(r => r.status === statusFilter);
+            }
+            
+            // Se ambas as datas são iguais, filtra por dia específico
+            if (dateFrom && dateTo && dateFrom === dateTo) {
+                filteredRids = filteredRids.filter(r => r.dataOcorrencia === dateFrom);
+            } else {
+                // Filtro por intervalo de datas
+                if (dateFrom) {
+                    filteredRids = filteredRids.filter(r => r.dataOcorrencia >= dateFrom);
+                }
+                
+                if (dateTo) {
+                    filteredRids = filteredRids.filter(r => r.dataOcorrencia <= dateTo);
+                }
+            }
+
+            const tbody = document.getElementById('ridsTableBody');
+            tbody.innerHTML = filteredRids.map(rid => {
+                const user = users.find(u => u.cpf === rid.emitenteCpf);
+                const statusColor = rid.status === 'Pendente' ? 'bg-red-100 text-red-800' : 
+                                  rid.status === 'Em Andamento' ? 'bg-yellow-100 text-yellow-800' : 
+                                  'bg-green-100 text-green-800';
+                const priorityColor = rid.prioridade === 'Alta' ? 'bg-red-100 text-red-800' : 
+                                    rid.prioridade === 'Média' ? 'bg-yellow-100 text-yellow-800' : 
+                                    'bg-green-100 text-green-800';
+
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">${rid.numero}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user ? user.name : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(rid.dataOcorrencia).toLocaleDateString('pt-BR')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                                ${rid.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${priorityColor}">
+                                ${rid.prioridade}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="viewRidDetails('${rid.id}')" class="text-primary hover:text-yellow-600">Ver Detalhes</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Carregar tabela de administradores
+        function loadAdministradoresTable() {
+            const administradores = users.filter(u => u.isAdmin && u.cpf !== '111.111.111-11').sort((a, b) => a.name.localeCompare(b.name));
+            const tbody = document.getElementById('administradoresTableBody');
+            
+            tbody.innerHTML = administradores.map(admin => {
+                const adminRids = rids.filter(r => r.emitenteCpf === admin.cpf);
+                const totalRids = adminRids.length;
+                const isOriginalAdmin = admin.cpf === '111.111.111-11';
+
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">${admin.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${admin.cpf}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${admin.sector}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${totalRids}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span class="px-2 py-1 rounded text-xs ${isOriginalAdmin ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                                ${isOriginalAdmin ? 'Admin Original' : 'Promovido'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            ${!isOriginalAdmin ? `
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="demoteAdmin('${admin.id}')" class="text-orange-600 hover:text-orange-800 p-1 rounded" title="Remover privilégios de admin">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="deleteEmployee('${admin.id}')" class="text-red-600 hover:text-red-800 p-1 rounded" title="Deletar usuário">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            ` : `
+                                <span class="text-gray-400 text-sm">Admin Principal</span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Carregar tabela de funcionários
+        function loadFuncionariosTable() {
+            const funcionarios = users.filter(u => !u.isAdmin).sort((a, b) => a.name.localeCompare(b.name));
+            const tbody = document.getElementById('funcionariosTableBody');
+            
+            tbody.innerHTML = funcionarios.map(funcionario => {
+                const funcionarioRids = rids.filter(r => r.emitenteCpf === funcionario.cpf);
+                const totalRids = funcionarioRids.length;
+
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">${funcionario.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${funcionario.cpf}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${funcionario.sector}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${totalRids}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="deleteEmployee('${funcionario.id}')" class="text-red-600 hover:text-red-800 p-1 rounded" title="Deletar funcionário">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                                <div class="relative">
+                                    <button onclick="toggleEmployeeMenu('${funcionario.id}')" class="text-gray-600 hover:text-gray-800 p-1 rounded" title="Mais opções">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                        </svg>
+                                    </button>
+                                    <div id="menu-${funcionario.id}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                        <button onclick="makeAdmin('${funcionario.id}')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Tornar Administrador
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Carregar tabela de RIDs do funcionário
+        function loadEmployeeRidsTable() {
+            const myRids = rids.filter(r => r.emitenteCpf === currentUser.cpf);
+            const tbody = document.getElementById('employeeRidsTableBody');
+            
+            tbody.innerHTML = myRids.map(rid => {
+                const statusColor = rid.status === 'Pendente' ? 'bg-red-100 text-red-800' : 
+                                  rid.status === 'Em Andamento' ? 'bg-yellow-100 text-yellow-800' : 
+                                  'bg-green-100 text-green-800';
+                const priorityColor = rid.prioridade === 'Alta' ? 'bg-red-100 text-red-800' : 
+                                    rid.prioridade === 'Média' ? 'bg-yellow-100 text-yellow-800' : 
+                                    'bg-green-100 text-green-800';
+
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">${rid.numero}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(rid.dataOcorrencia).toLocaleDateString('pt-BR')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${rid.localOcorrencia}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                                ${rid.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${priorityColor}">
+                                ${rid.prioridade}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="viewRidDetails('${rid.id}')" class="text-primary hover:text-yellow-600">Ver Detalhes</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Controles do filtro de RIDs
+        document.getElementById('toggleRidsFilterBtn').addEventListener('click', () => {
+            const filterDiv = document.getElementById('ridsFilters');
+            filterDiv.classList.toggle('hidden');
+        });
+
+        document.getElementById('applyRidsFilter').addEventListener('click', () => {
+            loadRidsTable();
+        });
+
+        document.getElementById('clearRidsFilter').addEventListener('click', () => {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+            loadRidsTable();
+        });
+
+        // Event listeners para filtros
+        document.getElementById('statusFilter').addEventListener('change', loadRidsTable);
+        document.getElementById('dateFromFilter').addEventListener('change', loadRidsTable);
+        document.getElementById('dateToFilter').addEventListener('change', loadRidsTable);
+
+        // Modal de RID
+        const ridModal = document.getElementById('ridModal');
+        const ridForm = document.getElementById('ridForm');
+        let editingRidId = null;
+
+        // Botões para criar RID
+        document.getElementById('createRidBtn').addEventListener('click', () => openRidModal());
+        document.getElementById('employeeCreateRidBtn').addEventListener('click', () => openRidModal());
+
+        function openRidModal() {
+            editingRidId = null;
+            const modalTitle = document.getElementById('ridModalTitle');
+            
+            modalTitle.textContent = 'Criar Novo RID';
+            ridForm.reset();
+            document.getElementById('ridStatus').disabled = false;
+            
+            // Preencher dados do usuário atual
+            if (currentUser) {
+                document.getElementById('ridEmitente').value = currentUser.name;
+                document.getElementById('ridSetorEmitente').value = currentUser.sector;
+            }
+            
+            ridModal.classList.remove('hidden');
+        }
+
+        // Fechar modal
+        document.getElementById('cancelRidBtn').addEventListener('click', () => {
+            ridModal.classList.add('hidden');
+        });
+
+        // Salvar RID
+        ridForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const ridData = {
+                emitente: document.getElementById('ridEmitente').value,
+                tipoContrato: document.getElementById('ridTipoContrato').value,
+                unidade: document.getElementById('ridUnidade').value,
+                setorEmitente: document.getElementById('ridSetorEmitente').value,
+                dataOcorrencia: document.getElementById('ridDataOcorrencia').value,
+                tipoIncidente: document.getElementById('ridTipoIncidente').value,
+                localOcorrencia: document.getElementById('ridLocalOcorrencia').value,
+                descricao: document.getElementById('ridDescricao').value,
+                acaoImediata: document.getElementById('ridAcaoImediata').value,
+                prioridade: document.getElementById('ridPrioridade').value,
+                status: document.getElementById('ridStatus').value,
+                emitenteCpf: currentUser.cpf,
+                dataEmissao: new Date().toISOString().split('T')[0]
+            };
+
+            // Criar novo RID (edição não permitida)
+            ridCounter++;
+            const newRid = {
+                id: Date.now().toString(),
+                numero: `RID-${ridCounter.toString().padStart(4, '0')}`,
+                ...ridData
+            };
+            rids.push(newRid);
+            localStorage.setItem('rid_counter', ridCounter.toString());
+
+            localStorage.setItem('rids_data', JSON.stringify(rids));
+            ridModal.classList.add('hidden');
+            
+            // Atualizar dashboards e tabelas
+            if (currentUser.isAdmin) {
+                updateAdminDashboard();
+                loadRidsTable();
+                updateTopEmployees();
+            } else {
+                updateEmployeeDashboard();
+                loadEmployeeRidsTable();
+            }
+        });
+
+        // Visualizar detalhes do RID
+        function viewRidDetails(ridId) {
+            currentRidId = ridId; // Armazenar o ID do RID atual
+            const rid = rids.find(r => r.id === ridId);
+            const user = users.find(u => u.cpf === rid.emitenteCpf);
+            
+            document.getElementById('ridDetailsTitle').textContent = `Detalhes do ${rid.numero}`;
+            document.getElementById('ridDetailsContent').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-medium text-dark mb-2">Informações Básicas</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><strong>RID:</strong> ${rid.numero}</p>
+                            <p><strong>Emitente:</strong> ${rid.emitente}</p>
+                            <p><strong>CPF:</strong> ${rid.emitenteCpf}</p>
+                            <p><strong>Setor:</strong> ${rid.setorEmitente}</p>
+                            <p><strong>Data da Emissão:</strong> ${new Date(rid.dataEmissao).toLocaleDateString('pt-BR')}</p>
+                            <p><strong>Data da Ocorrência:</strong> ${new Date(rid.dataOcorrencia).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-dark mb-2">Detalhes do Incidente</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><strong>Tipo de Contrato:</strong> ${rid.tipoContrato}</p>
+                            <p><strong>Unidade:</strong> ${rid.unidade}</p>
+                            <p><strong>Tipo de Incidente:</strong> ${rid.tipoIncidente}</p>
+                            <p><strong>Local:</strong> ${rid.localOcorrencia}</p>
+                            <p><strong>Prioridade:</strong> <span class="px-2 py-1 rounded text-xs ${rid.prioridade === 'Alta' ? 'bg-red-100 text-red-800' : rid.prioridade === 'Média' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">${rid.prioridade}</span></p>
+                            <p><strong>Status:</strong> <span class="px-2 py-1 rounded text-xs ${rid.status === 'Pendente' ? 'bg-red-100 text-red-800' : rid.status === 'Em Andamento' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">${rid.status}</span></p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <h4 class="font-medium text-dark mb-2">Descrição da Ocorrência</h4>
+                        <p class="text-sm bg-gray-50 p-3 rounded">${rid.descricao}</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <h4 class="font-medium text-dark mb-2">Ação Imediata</h4>
+                        <p class="text-sm bg-gray-50 p-3 rounded">${rid.acaoImediata}</p>
+                    </div>
+                </div>
+                ${currentUser.isAdmin ? `
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="font-medium text-dark mb-4">Controles Administrativos</h4>
+                        <div class="flex space-x-4">
+                            <select id="quickStatusChange" class="border border-gray-300 rounded px-3 py-2">
+                                <option value="Pendente" ${rid.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                                <option value="Em Andamento" ${rid.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
+                                <option value="Concluído" ${rid.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
+                            </select>
+                            <select id="quickPriorityChange" class="border border-gray-300 rounded px-3 py-2">
+                                <option value="Baixa" ${rid.prioridade === 'Baixa' ? 'selected' : ''}>Baixa</option>
+                                <option value="Média" ${rid.prioridade === 'Média' ? 'selected' : ''}>Média</option>
+                                <option value="Alta" ${rid.prioridade === 'Alta' ? 'selected' : ''}>Alta</option>
+                            </select>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            
+            // Mostrar/esconder botão atualizar baseado no usuário
+            const updateBtn = document.getElementById('updateRidQuickBtn');
+            if (currentUser.isAdmin) {
+                updateBtn.classList.remove('hidden');
+            } else {
+                updateBtn.classList.add('hidden');
+            }
+            
+            document.getElementById('ridDetailsModal').classList.remove('hidden');
+        }
+
+        // Atualização rápida de RID
+        function updateRidQuick() {
+            if (!currentRidId) return;
+            
+            const rid = rids.find(r => r.id === currentRidId);
+            const oldStatus = rid.status;
+            const newStatus = document.getElementById('quickStatusChange').value;
+            const newPriority = document.getElementById('quickPriorityChange').value;
+            
+            rid.status = newStatus;
+            rid.prioridade = newPriority;
+            
+            // Atualizar data de conclusão baseado no status
+            if (newStatus === 'Concluído' && oldStatus !== 'Concluído') {
+                // Só atualiza a data se estava mudando PARA concluído
+                rid.dataConclusao = new Date().toISOString().split('T')[0];
+            } else if (newStatus !== 'Concluído') {
+                // Limpa a data se não está mais concluído
+                rid.dataConclusao = '';
+            }
+            
+            localStorage.setItem('rids_data', JSON.stringify(rids));
+            document.getElementById('ridDetailsModal').classList.add('hidden');
+            
+            updateAdminDashboard();
+            loadRidsTable();
+            updateTopEmployees();
+        }
+
+        // Event listener para o botão de atualização rápida
+        document.getElementById('updateRidQuickBtn').addEventListener('click', updateRidQuick);
+
+        // Função de editar RID removida - RIDs não podem ser editados após emissão
+
+        // Fechar modal de detalhes
+        document.getElementById('closeDetailsBtn').addEventListener('click', () => {
+            document.getElementById('ridDetailsModal').classList.add('hidden');
+        });
+
+        // Modal de relatório
+        const reportModal = document.getElementById('reportModal');
+
+        document.getElementById('reportBtn').addEventListener('click', () => {
+            loadReportTable();
+            reportModal.classList.remove('hidden');
+        });
+
+        document.getElementById('closeReportBtn').addEventListener('click', () => {
+            reportModal.classList.add('hidden');
+        });
+
+        document.getElementById('closeReportBtnBottom').addEventListener('click', () => {
+            reportModal.classList.add('hidden');
+        });
+
+        // Carregar tabela de relatório
+        function loadReportTable(filteredRids = null) {
+            const ridsToShow = filteredRids || rids;
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = ridsToShow.map((rid, index) => {
+                const user = users.find(u => u.cpf === rid.emitenteCpf);
+                
+                // Definir cor da linha baseada no status
+                let rowBgColor = '';
+                if (rid.status === 'Pendente') {
+                    rowBgColor = 'bg-red-50'; // Vermelho clarinho
+                } else if (rid.status === 'Em Andamento') {
+                    rowBgColor = 'bg-blue-50'; // Azul clarinho
+                } else if (rid.status === 'Concluído' || rid.status === 'Corrigido') {
+                    rowBgColor = 'bg-green-50'; // Verde clarinho
+                } else {
+                    rowBgColor = 'bg-white'; // Branco para status indefinido
+                }
+                
+                return `
+                    <tr data-rid-id="${rid.id}" class="${rowBgColor}">
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="unidade" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.unidade || ''}">${rid.unidade || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="numero" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.numero || ''}">${rid.numero || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="dataEmissao" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.dataEmissao ? new Date(rid.dataEmissao).toLocaleDateString('pt-BR') : ''}">${rid.dataEmissao ? new Date(rid.dataEmissao).toLocaleDateString('pt-BR') : ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="emitente" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.emitente || ''}">${rid.emitente || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="tipoContrato" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.tipoContrato || ''}">${rid.tipoContrato || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="setorEmitente" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.setorEmitente || ''}">${rid.setorEmitente || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="localOcorrencia" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.localOcorrencia || ''}">${rid.localOcorrencia || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="genese" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title=""></td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="origemDeteccao" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title=""></td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="descricao" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.descricao || ''}">${rid.descricao || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="prioridade" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.prioridade || ''}">${rid.prioridade || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="acaoImediata" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.acaoImediata || ''}">${rid.acaoImediata || ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="acoesCorretivas" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title=""></td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="responsavelAcoes" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title=""></td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="prazoConclusao" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title=""></td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate bg-gray-50" contenteditable="false" data-field="dataConclusao" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.dataConclusao && rid.status === 'Concluído' ? new Date(rid.dataConclusao).toLocaleDateString('pt-BR') : ''}">${rid.dataConclusao && rid.status === 'Concluído' ? new Date(rid.dataConclusao).toLocaleDateString('pt-BR') : ''}</td>
+                        <td class="px-2 py-2 text-xs border border-gray-300 align-middle truncate" contenteditable="true" data-field="status" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 32px;" title="${rid.status || ''}">${rid.status || ''}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Adicionar event listeners para salvar mudanças
+            addEditableListeners();
+        }
+
+        // Adicionar listeners para células editáveis
+        function addEditableListeners() {
+            const editableCells = document.querySelectorAll('#reportTableBody td[contenteditable="true"]');
+            
+            editableCells.forEach(cell => {
+                // Manter altura fixa e uma linha
+                cell.style.whiteSpace = 'nowrap';
+                cell.style.overflow = 'hidden';
+                cell.style.textOverflow = 'ellipsis';
+                cell.style.height = '32px';
+                
+                // Salvar ao perder foco
+                cell.addEventListener('blur', function() {
+                    saveTableEdit(this);
+                    // Restaurar truncate após edição
+                    this.style.whiteSpace = 'nowrap';
+                    this.style.overflow = 'hidden';
+                    this.style.textOverflow = 'ellipsis';
+                    this.style.height = '32px';
+                });
+                
+                // Enter salva e sai da edição
+                cell.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                });
+                
+                // Destacar célula sendo editada e permitir visualização completa
+                cell.addEventListener('focus', function() {
+                    this.style.backgroundColor = '#fef3c7';
+                    this.style.whiteSpace = 'normal';
+                    this.style.overflow = 'visible';
+                    this.style.textOverflow = 'clip';
+                    this.style.height = 'auto';
+                    this.style.minHeight = '32px';
+                    this.style.zIndex = '10';
+                    this.style.position = 'relative';
+                });
+                
+                cell.addEventListener('blur', function() {
+                    this.style.backgroundColor = '';
+                    this.style.zIndex = '';
+                    this.style.position = '';
+                });
+            });
+        }
+
+        // Salvar edição da tabela
+        function saveTableEdit(cell) {
+            const row = cell.closest('tr');
+            const ridId = row.getAttribute('data-rid-id');
+            const field = cell.getAttribute('data-field');
+            const newValue = cell.textContent.trim();
+            
+            // Encontrar o RID no array
+            const ridIndex = rids.findIndex(r => r.id === ridId);
+            if (ridIndex === -1) return;
+            
+            // Atualizar o valor
+            if (field === 'dataEmissao') {
+                // Converter data de volta para formato ISO se necessário
+                const dateParts = newValue.split('/');
+                if (dateParts.length === 3) {
+                    rids[ridIndex][field] = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+                } else {
+                    rids[ridIndex][field] = newValue;
+                }
+            } else if (field === 'status') {
+                const oldStatus = rids[ridIndex].status;
+                rids[ridIndex][field] = newValue;
+                
+                // Atualizar data de conclusão baseado no status
+                if (newValue === 'Concluído' && oldStatus !== 'Concluído') {
+                    // Só atualiza a data se estava mudando PARA concluído
+                    rids[ridIndex].dataConclusao = new Date().toISOString().split('T')[0];
+                } else if (newValue !== 'Concluído') {
+                    // Limpa a data se não está mais concluído
+                    rids[ridIndex].dataConclusao = '';
+                }
+                
+                // Atualizar cor da linha baseada no novo status
+                const row = cell.closest('tr');
+                let newRowBgColor = '';
+                if (newValue === 'Pendente') {
+                    newRowBgColor = 'bg-red-50';
+                } else if (newValue === 'Em Andamento') {
+                    newRowBgColor = 'bg-blue-50';
+                } else if (newValue === 'Concluído' || newValue === 'Corrigido') {
+                    newRowBgColor = 'bg-green-50';
+                } else {
+                    newRowBgColor = 'bg-white';
+                }
+                
+                // Remover classes de cor antigas e adicionar nova
+                row.classList.remove('bg-red-50', 'bg-blue-50', 'bg-green-50', 'bg-white');
+                row.classList.add(newRowBgColor);
+                
+                // Recarregar a tabela para mostrar a mudança na data de conclusão
+                setTimeout(() => {
+                    loadReportTable();
+                }, 100);
+            } else if (field === 'dataConclusao') {
+                // Não permitir edição manual da data de conclusão
+                // Ela deve ser controlada apenas pelo status
+                const currentStatus = rids[ridIndex].status;
+                if (currentStatus === 'Concluído') {
+                    // Manter a data automática, não permitir edição manual
+                    cell.textContent = rids[ridIndex].dataConclusao ? new Date(rids[ridIndex].dataConclusao).toLocaleDateString('pt-BR') : '';
+                    return;
+                } else {
+                    // Se não está concluído, manter vazio
+                    rids[ridIndex].dataConclusao = '';
+                    cell.textContent = '';
+                    return;
+                }
+            } else {
+                rids[ridIndex][field] = newValue;
+            }
+            
+            // Salvar no localStorage
+            localStorage.setItem('rids_data', JSON.stringify(rids));
+            
+            // Mostrar feedback visual
+            cell.style.backgroundColor = '#dcfce7';
+            setTimeout(() => {
+                cell.style.backgroundColor = '';
+            }, 1000);
+            
+            // Atualizar dashboards se necessário
+            if (currentUser && currentUser.isAdmin) {
+                updateAdminDashboard();
+                loadRidsTable();
+                updateTopEmployees();
+            }
+        }
+
+        // Controles do filtro de relatório
+        document.getElementById('toggleFilterBtn').addEventListener('click', () => {
+            const filterDiv = document.getElementById('reportFilters');
+            filterDiv.classList.toggle('hidden');
+        });
+
+        document.getElementById('applyReportFilter').addEventListener('click', () => {
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+            
+            let filteredRids = rids;
+            
+            if (dateFrom || dateTo) {
+                filteredRids = rids.filter(rid => {
+                    const ridDate = rid.dataEmissao || rid.dataOcorrencia;
+                    if (!ridDate) return false;
+                    
+                    const ridDateObj = new Date(ridDate);
+                    let includeRid = true;
+                    
+                    if (dateFrom) {
+                        includeRid = includeRid && ridDateObj >= new Date(dateFrom);
+                    }
+                    
+                    if (dateTo) {
+                        includeRid = includeRid && ridDateObj <= new Date(dateTo);
+                    }
+                    
+                    return includeRid;
+                });
+            }
+            
+            loadReportTable(filteredRids);
+        });
+
+        document.getElementById('clearReportFilter').addEventListener('click', () => {
+            document.getElementById('reportDateFrom').value = '';
+            document.getElementById('reportDateTo').value = '';
+            loadReportTable();
+        });
+
+        // Imprimir relatório (mesma função do salvar)
+        document.getElementById('printReportBtn').addEventListener('click', () => {
+            generatePDFReport();
+        });
+
+
+
+        // Função para gerar PDF do relatório
+        function generatePDFReport() {
+            // Obter dados filtrados da tabela atual
+            const tableRows = document.querySelectorAll('#reportTableBody tr');
+            let reportData = [];
+            
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 0) {
+                    reportData.push({
+                        unidade: cells[0].textContent.trim(),
+                        numero: cells[1].textContent.trim(),
+                        dataEmissao: cells[2].textContent.trim(),
+                        emitente: cells[3].textContent.trim(),
+                        tipoContrato: cells[4].textContent.trim(),
+                        setor: cells[5].textContent.trim(),
+                        local: cells[6].textContent.trim(),
+                        genese: cells[7].textContent.trim(),
+                        origem: cells[8].textContent.trim(),
+                        descricao: cells[9].textContent.trim(),
+                        classificacao: cells[10].textContent.trim(),
+                        acaoImediata: cells[11].textContent.trim(),
+                        acoesCorretivas: cells[12].textContent.trim(),
+                        responsavel: cells[13].textContent.trim(),
+                        prazo: cells[14].textContent.trim(),
+                        dataConclusao: cells[15].textContent.trim(),
+                        status: cells[16].textContent.trim()
+                    });
+                }
+            });
+
+            // Data atual para o cabeçalho
+            const dataEmissaoRelatorio = new Date().toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // HTML do PDF
+            const pdfContent = `
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Relatório RIDs - Sistema Caltins Formoso</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            font-size: 10px;
+                            line-height: 1.3;
+                        }
+                        
+                        .header {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 30px;
+                            border-bottom: 2px solid #D99900;
+                            padding-bottom: 15px;
+                            position: relative;
+                        }
+                        
+                        .header-logo {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 80px;
+                            height: auto;
+                        }
+                        
+                        .header-content {
+                            flex: 1;
+                            text-align: center;
+                            margin-left: 90px;
+                        }
+                        
+                        .header h1 {
+                            color: #D99900;
+                            font-size: 24px;
+                            margin: 0 0 5px 0;
+                            font-weight: bold;
+                        }
+                        
+                        .header h2 {
+                            color: #4A4A4A;
+                            font-size: 16px;
+                            margin: 0 0 10px 0;
+                            font-weight: normal;
+                        }
+                        
+                        .emission-info {
+                            color: #666;
+                            font-size: 12px;
+                            margin: 0;
+                        }
+                        
+                        .report-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 20px;
+                            font-size: 8px;
+                        }
+                        
+                        .report-table th,
+                        .report-table td {
+                            border: 1px solid #ddd;
+                            padding: 4px;
+                            text-align: left;
+                            vertical-align: top;
+                            word-wrap: break-word;
+                            max-width: 80px;
+                        }
+                        
+                        .report-table th {
+                            background-color: #f8f9fa;
+                            font-weight: bold;
+                            font-size: 7px;
+                            text-align: center;
+                        }
+                        
+                        .report-table tr:nth-child(even) {
+                            background-color: #f9f9f9;
+                        }
+                        
+                        .status-pendente { background-color: #fee2e2; color: #991b1b; }
+                        .status-andamento { background-color: #fef3c7; color: #92400e; }
+                        .status-concluido { background-color: #dcfce7; color: #166534; }
+                        
+                        .priority-alta { background-color: #fee2e2; color: #991b1b; }
+                        .priority-media { background-color: #fef3c7; color: #92400e; }
+                        .priority-baixa { background-color: #dcfce7; color: #166534; }
+                        
+                        .footer {
+                            margin-top: 30px;
+                            text-align: center;
+                            font-size: 10px;
+                            color: #666;
+                            border-top: 1px solid #ddd;
+                            padding-top: 15px;
+                        }
+                        
+                        @media print {
+                            body { margin: 0; }
+                            .header { page-break-inside: avoid; }
+                            .report-table { page-break-inside: auto; }
+                            .report-table tr { page-break-inside: avoid; page-break-after: auto; }
+                        }
+                        
+                        .col-unidade { width: 6%; }
+                        .col-numero { width: 7%; }
+                        .col-data { width: 6%; }
+                        .col-emitente { width: 10%; }
+                        .col-tipo { width: 8%; }
+                        .col-setor { width: 8%; }
+                        .col-local { width: 12%; }
+                        .col-genese { width: 8%; }
+                        .col-origem { width: 8%; }
+                        .col-descricao { width: 15%; }
+                        .col-classificacao { width: 6%; }
+                        .col-acao { width: 15%; }
+                        .col-corretivas { width: 8%; }
+                        .col-responsavel { width: 8%; }
+                        .col-prazo { width: 6%; }
+                        .col-conclusao { width: 6%; }
+                        .col-status { width: 6%; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <img src="https://www.jdemito.com.br/wp-content/themes/jdemito/img/logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none';">
+                        <div class="header-content">
+                            <h1>Sistema RIDs Caltins Formoso</h1>
+                            <h2>Relatório Completo de Incidentes e Desvios</h2>
+                            <p class="emission-info">Relatório emitido em: ${dataEmissaoRelatorio}</p>
+                            <p class="emission-info">Total de registros: ${reportData.length}</p>
+                        </div>
+                    </div>
+                    
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th class="col-unidade">Unidade</th>
+                                <th class="col-numero">RID nº</th>
+                                <th class="col-data">Data Emissão</th>
+                                <th class="col-emitente">Emitente</th>
+                                <th class="col-tipo">Funcionário/<br>Terceiro/<br>Visitante</th>
+                                <th class="col-setor">Setor/<br>Empresa</th>
+                                <th class="col-local">Local<br>Incidente</th>
+                                <th class="col-genese">Gênese do<br>Incidente/<br>Desvio</th>
+                                <th class="col-origem">Origem da<br>Detecção</th>
+                                <th class="col-descricao">Descrição</th>
+                                <th class="col-classificacao">Classificação<br>Risco</th>
+                                <th class="col-acao">Ação<br>Imediata</th>
+                                <th class="col-corretivas">Ações<br>Corretivas</th>
+                                <th class="col-responsavel">Responsável<br>pelas Ações</th>
+                                <th class="col-prazo">Prazo de<br>Conclusão</th>
+                                <th class="col-conclusao">Data<br>Conclusão</th>
+                                <th class="col-status">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reportData.map(row => {
+                                const statusClass = row.status.toLowerCase().includes('pendente') ? 'status-pendente' :
+                                                  row.status.toLowerCase().includes('andamento') ? 'status-andamento' :
+                                                  row.status.toLowerCase().includes('concluído') || row.status.toLowerCase().includes('concluido') ? 'status-concluido' : '';
+                                
+                                const priorityClass = row.classificacao.toLowerCase().includes('alta') ? 'priority-alta' :
+                                                    row.classificacao.toLowerCase().includes('média') || row.classificacao.toLowerCase().includes('media') ? 'priority-media' :
+                                                    row.classificacao.toLowerCase().includes('baixa') ? 'priority-baixa' : '';
+                                
+                                return `
+                                    <tr>
+                                        <td class="col-unidade">${row.unidade || '-'}</td>
+                                        <td class="col-numero">${row.numero || '-'}</td>
+                                        <td class="col-data">${row.dataEmissao || '-'}</td>
+                                        <td class="col-emitente">${row.emitente || '-'}</td>
+                                        <td class="col-tipo">${row.tipoContrato || '-'}</td>
+                                        <td class="col-setor">${row.setor || '-'}</td>
+                                        <td class="col-local">${row.local || '-'}</td>
+                                        <td class="col-genese">${row.genese || '-'}</td>
+                                        <td class="col-origem">${row.origem || '-'}</td>
+                                        <td class="col-descricao">${row.descricao || '-'}</td>
+                                        <td class="col-classificacao ${priorityClass}">${row.classificacao || '-'}</td>
+                                        <td class="col-acao">${row.acaoImediata || '-'}</td>
+                                        <td class="col-corretivas">${row.acoesCorretivas || '-'}</td>
+                                        <td class="col-responsavel">${row.responsavel || '-'}</td>
+                                        <td class="col-prazo">${row.prazo || '-'}</td>
+                                        <td class="col-conclusao">${row.dataConclusao || '-'}</td>
+                                        <td class="col-status ${statusClass}">${row.status || '-'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="footer">
+                        <p><strong>Sistema de Gestão de RIDs - Caltins Formoso</strong></p>
+                        <p>Relatório de Incidentes e Desvios | Documento gerado automaticamente</p>
+                        <p>© ${new Date().getFullYear()} - Todos os direitos reservados</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Abrir o relatório em uma nova janela/aba
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(pdfContent);
+            newWindow.document.close();
+            
+            // Mostrar mensagem de sucesso
+            const successMsg = document.createElement('div');
+            successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+            successMsg.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <div class="font-medium">Relatório aberto!</div>
+                        <div class="text-sm opacity-90">Use Ctrl+P na nova aba para imprimir ou salvar como PDF</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                if (document.body.contains(successMsg)) {
+                    document.body.removeChild(successMsg);
+                }
+            }, 4000);
+        }
+
+        // Download Excel (CSV formatado)
+        document.getElementById('downloadExcelBtn').addEventListener('click', () => {
+            // Função para limpar e formatar texto
+            function cleanText(text) {
+                if (!text || text === '-') return '';
+                return String(text)
+                    .replace(/"/g, '""')  // Escapar aspas duplas
+                    .replace(/\r?\n/g, ' ')  // Remover quebras de linha
+                    .replace(/\s+/g, ' ')  // Normalizar espaços
+                    .trim();
+            }
+
+            // Cabeçalhos das colunas
+            const headers = [
+                'Unidade',
+                'RID nº',
+                'Data emissão',
+                'Emitente',
+                'Funcionário/Terceiro/Visitante',
+                'Setor/Empresa',
+                'Local incidente',
+                'GÊNESE DO INCIDENTE/DESVIO',
+                'ORIGEM DA DETECÇÃO',
+                'Descrição',
+                'Classificação risco',
+                'Ação imediata',
+                'AÇÕES CORRETIVAS',
+                'RESPONSÁVEL PELAS AÇÕES',
+                'PRAZO DE CONCLUSÃO',
+                'Data conclusão',
+                'Status'
+            ];
+
+            // Criar linhas de dados
+            const rows = rids.map(rid => {
+                return [
+                    cleanText(rid.unidade),
+                    cleanText(rid.numero),
+                    rid.dataEmissao ? new Date(rid.dataEmissao).toLocaleDateString('pt-BR') : '',
+                    cleanText(rid.emitente),
+                    cleanText(rid.tipoContrato),
+                    cleanText(rid.setorEmitente),
+                    cleanText(rid.localOcorrencia),
+                    '', // Gênese incidente/desvio - campo em branco para admin preencher
+                    '', // Origem detecção - campo em branco para admin preencher
+                    cleanText(rid.descricao),
+                    cleanText(rid.prioridade),
+                    cleanText(rid.acaoImediata),
+                    '', // Ações corretivas - campo em branco para admin preencher
+                    '', // Responsável ações - campo em branco para admin preencher
+                    '', // Prazo conclusão - campo em branco para admin preencher
+                    rid.dataConclusao && rid.status === 'Concluído' ? new Date(rid.dataConclusao).toLocaleDateString('pt-BR') : '', // Data conclusão automática
+                    cleanText(rid.status)
+                ];
+            });
+
+            // Combinar cabeçalhos e dados
+            const allRows = [headers, ...rows];
+
+            // Converter para CSV com separador de ponto e vírgula (melhor para Excel brasileiro)
+            const csvContent = allRows.map(row => 
+                row.map(cell => `"${cell}"`).join(';')
+            ).join('\n');
+
+            // Adicionar BOM para UTF-8 (garante acentos corretos no Excel)
+            const BOM = '\uFEFF';
+            const finalContent = BOM + csvContent;
+
+            // Criar e baixar arquivo
+            const blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `relatorio_rids_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Limpar URL do objeto
+            URL.revokeObjectURL(url);
+        });
+
+        // Funções de gerenciamento de funcionários
+        function deleteEmployee(employeeId) {
+            const employee = users.find(u => u.id === employeeId);
+            if (!employee) return;
+            
+            // Criar modal de confirmação personalizado
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-dark">Confirmar Exclusão</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700">Tem certeza que deseja deletar o funcionário <strong>${employee.name}</strong>?</p>
+                        <p class="text-sm text-red-600 mt-2">Esta ação não pode ser desfeita.</p>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                        <button id="cancelDelete" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button id="confirmDelete" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                            Deletar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(confirmModal);
+            
+            document.getElementById('cancelDelete').addEventListener('click', () => {
+                document.body.removeChild(confirmModal);
+            });
+            
+            document.getElementById('confirmDelete').addEventListener('click', () => {
+                // Remover funcionário
+                users = users.filter(u => u.id !== employeeId);
+                localStorage.setItem('rids_users', JSON.stringify(users));
+                
+                // Recarregar tabelas
+                loadAdministradoresTable();
+                loadFuncionariosTable();
+                updateTopEmployees();
+                
+                document.body.removeChild(confirmModal);
+            });
+        }
+
+        function toggleEmployeeMenu(employeeId) {
+            // Fechar todos os outros menus
+            document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+                if (menu.id !== `menu-${employeeId}`) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            // Toggle do menu atual
+            const menu = document.getElementById(`menu-${employeeId}`);
+            menu.classList.toggle('hidden');
+        }
+
+        function makeAdmin(employeeId) {
+            const employee = users.find(u => u.id === employeeId);
+            if (!employee) return;
+            
+            // Criar modal de confirmação personalizado
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-dark">Confirmar Promoção</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700">Tem certeza que deseja tornar <strong>${employee.name}</strong> um administrador?</p>
+                        <p class="text-sm text-blue-600 mt-2">O funcionário terá acesso total ao sistema.</p>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                        <button id="cancelPromotion" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button id="confirmPromotion" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-yellow-600">
+                            Tornar Admin
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(confirmModal);
+            
+            document.getElementById('cancelPromotion').addEventListener('click', () => {
+                document.body.removeChild(confirmModal);
+            });
+            
+            document.getElementById('confirmPromotion').addEventListener('click', () => {
+                // Encontrar o funcionário no array e tornar administrador
+                const employeeIndex = users.findIndex(u => u.id === employeeId);
+                if (employeeIndex !== -1) {
+                    users[employeeIndex].isAdmin = true;
+                    localStorage.setItem('rids_users', JSON.stringify(users));
+                    
+                    // Recarregar tabelas
+                    loadAdministradoresTable();
+                    loadFuncionariosTable();
+                    updateTopEmployees();
+                    
+                    // Fechar menu
+                    const menu = document.getElementById(`menu-${employeeId}`);
+                    if (menu) {
+                        menu.classList.add('hidden');
+                    }
+                    
+                    // Mostrar mensagem de sucesso
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    successMsg.textContent = `${users[employeeIndex].name} foi promovido(a) a administrador(a)!`;
+                    document.body.appendChild(successMsg);
+                    
+                    setTimeout(() => {
+                        if (document.body.contains(successMsg)) {
+                            document.body.removeChild(successMsg);
+                        }
+                    }, 3000);
+                }
+                
+                document.body.removeChild(confirmModal);
+            });
+        }
+
+        function demoteAdmin(adminId) {
+            const admin = users.find(u => u.id === adminId);
+            if (!admin || admin.cpf === '111.111.111-11') return; // Não pode rebaixar admin original
+            
+            // Criar modal de confirmação personalizado
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-dark">Confirmar Rebaixamento</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700">Tem certeza que deseja remover os privilégios de administrador de <strong>${admin.name}</strong>?</p>
+                        <p class="text-sm text-orange-600 mt-2">O usuário voltará a ser funcionário comum.</p>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                        <button id="cancelDemotion" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button id="confirmDemotion" class="px-4 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700">
+                            Rebaixar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(confirmModal);
+            
+            document.getElementById('cancelDemotion').addEventListener('click', () => {
+                document.body.removeChild(confirmModal);
+            });
+            
+            document.getElementById('confirmDemotion').addEventListener('click', () => {
+                // Encontrar o admin no array e remover privilégios
+                const adminIndex = users.findIndex(u => u.id === adminId);
+                if (adminIndex !== -1) {
+                    users[adminIndex].isAdmin = false;
+                    localStorage.setItem('rids_users', JSON.stringify(users));
+                    
+                    // Recarregar tabelas
+                    loadAdministradoresTable();
+                    loadFuncionariosTable();
+                    updateTopEmployees();
+                    
+                    // Mostrar mensagem de sucesso
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                    successMsg.textContent = `${users[adminIndex].name} foi rebaixado(a) a funcionário(a)!`;
+                    document.body.appendChild(successMsg);
+                    
+                    setTimeout(() => {
+                        if (document.body.contains(successMsg)) {
+                            document.body.removeChild(successMsg);
+                        }
+                    }, 3000);
+                }
+                
+                document.body.removeChild(confirmModal);
+            });
+        }
+
+        // Fechar menus quando clicar fora
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[id^="menu-"]') && !event.target.closest('button[onclick^="toggleEmployeeMenu"]')) {
+                document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+
+        // Função para verificar e atualizar automaticamente
+        function autoUpdateWeeklyData() {
+            // Verificar se estamos no dashboard e se há um usuário logado
+            if (currentUser && currentUser.isAdmin && !document.getElementById('dashboardSection').classList.contains('hidden')) {
+                loadWeekRids();
+                updateAdminDashboard();
+                updateTopEmployees();
+            }
+        }
+
+        // Configurar atualização automática a cada hora
+        setInterval(autoUpdateWeeklyData, 60 * 60 * 1000); // 1 hora
+
+        // Verificar mudança de data a cada minuto (para detectar mudança de dia)
+        let lastCheckDate = new Date().toDateString();
+        setInterval(() => {
+            const currentDate = new Date().toDateString();
+            if (currentDate !== lastCheckDate) {
+                lastCheckDate = currentDate;
+                // Nova data detectada - atualizar dados
+                autoUpdateWeeklyData();
+            }
+        }, 60 * 1000); // 1 minuto
+
+        // Sistema de Tarefas
+        
+        // Formulário de nova tarefa
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const taskData = {
+                id: Date.now().toString(),
+                userId: currentUser.id,
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                dueDate: document.getElementById('taskDueDate').value,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null
+            };
+            
+            tasks.push(taskData);
+            localStorage.setItem('rids_tasks', JSON.stringify(tasks));
+            
+            // Limpar formulário
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskPriority').value = 'Média';
+            
+            // Recarregar lista
+            loadTasks();
+        });
+
+        // Filtros de tarefas
+        document.getElementById('filterAllTasks').addEventListener('click', () => {
+            currentTaskFilter = 'all';
+            updateFilterButtons();
+            loadTasks();
+        });
+        
+        document.getElementById('filterPendingTasks').addEventListener('click', () => {
+            currentTaskFilter = 'pending';
+            updateFilterButtons();
+            loadTasks();
+        });
+        
+        document.getElementById('filterCompletedTasks').addEventListener('click', () => {
+            currentTaskFilter = 'completed';
+            updateFilterButtons();
+            loadTasks();
+        });
+
+        // Atualizar aparência dos botões de filtro
+        function updateFilterButtons() {
+            const buttons = {
+                all: document.getElementById('filterAllTasks'),
+                pending: document.getElementById('filterPendingTasks'),
+                completed: document.getElementById('filterCompletedTasks')
+            };
+            
+            // Remover classes ativas de todos
+            Object.values(buttons).forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            
+            // Adicionar classe ativa ao selecionado
+            if (buttons[currentTaskFilter]) {
+                buttons[currentTaskFilter].classList.remove('bg-gray-200', 'text-gray-700');
+                buttons[currentTaskFilter].classList.add('bg-primary', 'text-white');
+            }
+        }
+
+        // Carregar e exibir tarefas
+        function loadTasks() {
+            const userTasks = tasks.filter(t => t.userId === currentUser.id);
+            let filteredTasks = userTasks;
+            
+            // Aplicar filtro
+            if (currentTaskFilter === 'pending') {
+                filteredTasks = userTasks.filter(t => !t.completed);
+            } else if (currentTaskFilter === 'completed') {
+                filteredTasks = userTasks.filter(t => t.completed);
+            }
+            
+            // Ordenar por prioridade e data
+            filteredTasks.sort((a, b) => {
+                const priorityOrder = { 'Alta': 3, 'Média': 2, 'Baixa': 1 };
+                const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+                if (priorityDiff !== 0) return priorityDiff;
+                
+                // Se mesma prioridade, ordenar por data de vencimento
+                if (a.dueDate && b.dueDate) {
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                }
+                if (a.dueDate) return -1;
+                if (b.dueDate) return 1;
+                
+                // Por último, por data de criação
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
+            const tasksList = document.getElementById('tasksList');
+            
+            if (filteredTasks.length === 0) {
+                const emptyMessage = currentTaskFilter === 'pending' ? 'Nenhuma tarefa pendente!' :
+                                  currentTaskFilter === 'completed' ? 'Nenhuma tarefa concluída ainda.' :
+                                  'Nenhuma tarefa criada ainda. Adicione uma nova tarefa acima!';
+                tasksList.innerHTML = `<p class="text-gray-500 text-sm text-center py-8">${emptyMessage}</p>`;
+            } else {
+                tasksList.innerHTML = filteredTasks.map(task => {
+                    const priorityColor = task.priority === 'Alta' ? 'bg-red-100 text-red-800' :
+                                        task.priority === 'Média' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-green-100 text-green-800';
+                    
+                    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
+                    const dueDateText = task.dueDate ? new Date(task.dueDate).toLocaleDateString('pt-BR') : 'Sem prazo';
+                    
+                    return `
+                        <div class="border border-gray-200 rounded-lg p-4 ${task.completed ? 'bg-gray-50 opacity-75' : 'bg-white'} ${isOverdue ? 'border-red-300' : ''}">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-start space-x-3 flex-1">
+                                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                                           onchange="toggleTask('${task.id}')" 
+                                           class="mt-1 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-dark ${task.completed ? 'line-through text-gray-500' : ''}">${task.title}</h5>
+                                        ${task.description ? `<p class="text-sm text-gray-600 mt-1 ${task.completed ? 'line-through' : ''}">${task.description}</p>` : ''}
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 ml-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${priorityColor}">
+                                        ${task.priority}
+                                    </span>
+                                    <button onclick="deleteTask('${task.id}')" class="text-red-600 hover:text-red-800 p-1 rounded" title="Deletar tarefa">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <span class="${isOverdue ? 'text-red-600 font-medium' : ''}">
+                                    📅 ${dueDateText} ${isOverdue ? '(Atrasada)' : ''}
+                                </span>
+                                <span>Criada em ${new Date(task.createdAt).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            ${task.completed && task.completedAt ? `
+                                <div class="text-xs text-green-600 mt-1">
+                                    ✅ Concluída em ${new Date(task.completedAt).toLocaleDateString('pt-BR')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Atualizar botões de filtro
+            updateFilterButtons();
+        }
+
+        // Alternar status da tarefa
+        function toggleTask(taskId) {
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex === -1) return;
+            
+            tasks[taskIndex].completed = !tasks[taskIndex].completed;
+            tasks[taskIndex].completedAt = tasks[taskIndex].completed ? new Date().toISOString() : null;
+            
+            localStorage.setItem('rids_tasks', JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        // Deletar tarefa
+        function deleteTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            // Criar modal de confirmação personalizado
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-dark">Confirmar Exclusão</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700">Tem certeza que deseja deletar a tarefa <strong>"${task.title}"</strong>?</p>
+                        <p class="text-sm text-red-600 mt-2">Esta ação não pode ser desfeita.</p>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                        <button id="cancelDeleteTask" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button id="confirmDeleteTask" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                            Deletar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(confirmModal);
+            
+            document.getElementById('cancelDeleteTask').addEventListener('click', () => {
+                document.body.removeChild(confirmModal);
+            });
+            
+            document.getElementById('confirmDeleteTask').addEventListener('click', () => {
+                tasks = tasks.filter(t => t.id !== taskId);
+                localStorage.setItem('rids_tasks', JSON.stringify(tasks));
+                loadTasks();
+                document.body.removeChild(confirmModal);
+            });
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Definir data atual como padrão
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('ridDataOcorrencia').value = today;
+            
+            // Configurar primeira verificação da semana
+            const currentWeekKey = (() => {
+                const today = new Date();
+                const dayOfWeek = today.getDay();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - dayOfWeek);
+                return `${startOfWeek.getFullYear()}-W${Math.ceil((startOfWeek.getTime() - new Date(startOfWeek.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}`;
+            })();
+            
+            if (!localStorage.getItem('last_week_check')) {
+                localStorage.setItem('last_week_check', currentWeekKey);
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9948bef0c77d9d59',t:'MTc2MTQ2OTA0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
